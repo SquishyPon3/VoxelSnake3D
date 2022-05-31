@@ -104,6 +104,9 @@ public class TileTransform : MonoBehaviour
 
     void Move(Vector3 dir, int distance = 1)
     {
+        // Move all this shit to the tile manager for validation instead
+        // eventually because then I can make sure stuff moves when it is supposed to.
+
         Vector3 _targetPos;
 
         _targetPos = Position + new Vector3(dir.x * distance, dir.y * distance, dir.z * distance);
