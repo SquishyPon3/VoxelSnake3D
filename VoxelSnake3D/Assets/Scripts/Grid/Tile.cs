@@ -2,14 +2,13 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Tile : MonoBehaviour
+public class Tile
 {
     private LinkedList<TileTransform> TileTransforms;
 
-    // Start is called before the first frame update
-    void Start()
+    public Tile(LinkedList<TileTransform> tileTransforms)
     {
-        
+        TileTransforms = tileTransforms;
     }
 
     // Update is called once per frame

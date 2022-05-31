@@ -1,17 +1,22 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
-public class TileGrid : MonoBehaviour
+[System.Serializable]
+public class TileGrid
 {
+    [SerializeField]
     public Tile[,,] Grid;
     private int GridX, GridY, GridZ;
 
     public TileGrid(Vector3 value)
     {
-        GridX = (int)(value.x * 0.5f);
-        GridY = (int)(value.y * 0.5f);
-        GridZ = (int)(value.z * 0.5f);
+        value.x += 0.5f;
+        value.y += 0.5f;
+        value.z += 0.5f;
+
+        GridX = (int)value.x;
+        GridY = (int)value.y;
+        GridZ = (int)value.z;
 
         Grid = new Tile[GridX, GridY, GridZ];
     }
@@ -66,21 +71,21 @@ public class TileGrid : MonoBehaviour
     {
         get
         {
-            int indexX = (int)(index.x * 0.5f);
-            int indexY = (int)(index.x * 0.5f);
-            int indexZ = (int)(index.x * 0.5f);
+            index.x += 0.5f;
+            index.y += 0.5f;
+            index.z += 0.5f;
 
             // Returns tile at Grid point [x,y,z]            
 
-            return Grid[indexX, indexY, indexZ];
+            return Grid[(int)index.x, (int)index.y, (int)index.z];
         }
         set
         {
-            int indexX = (int)(index.x * 0.5f);
-            int indexY = (int)(index.x * 0.5f);
-            int indexZ = (int)(index.x * 0.5f);
+            index.x += 0.5f;
+            index.y += 0.5f;
+            index.z += 0.5f;
 
-            Grid[indexX, indexY, indexZ] = value;
+            Grid[(int)index.x, (int)index.y, (int)index.z] = value;
         }
     }
 

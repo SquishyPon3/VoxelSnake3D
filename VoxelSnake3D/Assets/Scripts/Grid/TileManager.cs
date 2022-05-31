@@ -4,21 +4,45 @@ using UnityEngine;
 
 public class TileManager : MonoBehaviour
 {
+    [SerializeField]
     public TileGrid WorldTileGrid;
-    public List<TileTransform> DynamicTiles;
+    public List<TileTransform> TileTransforms;
 
     // Start is called before the first frame update
     void Start()
     {
         WorldTileGrid = new TileGrid(20, 20, 20);
+        TileTransforms = new List<TileTransform>(FindObjectsOfType<TileTransform>());
+
+        foreach (TileTransform tileTransform in TileTransforms)
+        {
+            Vector3 _tilePos = tileTransform.transform.position;
+
+            if (WorldTileGrid[_tilePos] == null)
+            {
+                CreateTileAtIndexPos(_tilePos);
+            }
+                
+            WorldTileGrid[_tilePos].AddTileTransform(tileTransform);
+        }
+
+        print(WorldTileGrid.X + WorldTileGrid.Y + WorldTileGrid.Z);
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.T))
-        {
-            print(WorldTileGrid.Grid.Length);
-        }
+
+    }
+
+    public void CreateTileAtIndexPos(Vector3 indexPos)
+    {
+        LinkedList<TileTransform> _tileTransList = new LinkedList<TileTransform>();
+        WorldTileGrid[indexPos] = new Tile(_tileTransList);
+    }
+
+    public void RemoveTileAtIndexPos(Vector3 indexPos)
+    {
+
     }
 }
