@@ -45,4 +45,12 @@ public class TileManager : MonoBehaviour
     {
 
     }
+
+    public void UpdatePositions()
+    {
+        for (int i = 0; i < TileTransforms.Count; i++)
+        {
+            TileTransforms[i].Position = TileTransforms[i].TargetPosition;
+        }
+    }
 }

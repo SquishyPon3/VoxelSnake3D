@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class TileTransform : MonoBehaviour
 {
-    TileManager TheTileManager;
+    public TileManager TheTileManager;
     public bool Dynamic = false;
     public int Prioity = 100;
 
@@ -25,12 +25,15 @@ public class TileTransform : MonoBehaviour
         }
     }
 
+    public Vector3 TargetPosition;
+
     // Start is called before the first frame update
     void Start()
     {
         TheTileManager = GameObject.Find("World").GetComponent<TileManager>();
         
         TileTransPosition = transform.position;
+        TargetPosition = Position;
     }
 
     // Update is called once per frame
@@ -55,22 +58,30 @@ public class TileTransform : MonoBehaviour
 
         if (Dynamic)
         {
-            if (Input.GetKeyDown(KeyCode.W))
-            {
-                Move(Vector3.forward);
-            }
-            if (Input.GetKeyDown(KeyCode.S))
-            {
-                Move(Vector3.back);
-            }
-            if (Input.GetKeyDown(KeyCode.A))
-            {
-                Move(Vector3.left);
-            }
-            if (Input.GetKeyDown(KeyCode.D))
-            {
-                Move(Vector3.right);
-            }
+            //if (Input.GetKeyDown(KeyCode.W))
+            //{
+            //    Move(Vector3.forward);
+            //}
+            //if (Input.GetKeyDown(KeyCode.S))
+            //{
+            //    Move(Vector3.back);
+            //}
+            //if (Input.GetKeyDown(KeyCode.A))
+            //{
+            //    Move(Vector3.left);
+            //}
+            //if (Input.GetKeyDown(KeyCode.D))
+            //{
+            //    Move(Vector3.right);
+            //}
+            //if (Input.GetKeyDown(KeyCode.Space))
+            //{
+            //    Move(Vector3.up);
+            //}
+            //if (Input.GetKeyDown(KeyCode.LeftControl))
+            //{
+            //    Move(Vector3.down);
+            //}
         }        
     }
 
@@ -102,7 +113,7 @@ public class TileTransform : MonoBehaviour
         TheTileManager.WorldTileGrid[TileTransPosition].AddTileTransform(this);
     }
 
-    void Move(Vector3 dir, int distance = 1)
+    public void Move(Vector3 dir, int distance = 1)
     {
         // Move all this shit to the tile manager for validation instead
         // eventually because then I can make sure stuff moves when it is supposed to.
