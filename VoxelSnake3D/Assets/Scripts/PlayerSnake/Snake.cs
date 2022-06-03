@@ -4,12 +4,16 @@ using UnityEngine;
 
 public class Snake : MonoBehaviour
 {
+    TileManager TheTileManager;
     public List<TileTransform> BodyList;
     public Vector3 TailLastPos;
+    public GameObject SnakeBodyPiece;
 
     // Start is called before the first frame update
     void Start()
     {
+        TheTileManager = GameObject.Find("World").GetComponent<TileManager>();
+
         foreach (Transform bodyTrans in transform)
         {
             BodyList.Add(bodyTrans.GetComponent<TileTransform>());
@@ -58,25 +62,52 @@ public class Snake : MonoBehaviour
 
             if (i == 0)
             {
-                BodyList[i].Move(moveDir);
+                if (BodyList.Count > 1)
+                {                    
+                    if (TheTileManager.WorldTileGrid[_oldPos + moveDir] != null)
+                    {
+                        print("here");
+                        for (int j = 0; j < BodyList.Count; j++)
+                        {
+                            if (j < BodyList.Count - 1)
+                            {
+                                if (TheTileManager.WorldTileGrid[_oldPos + moveDir]
+                                    .GetTileTranformList().Contains(BodyList[j]))
+                                    return;
+                            }
+                        }
+                    }                    
+                }
+                if (!BodyList[i].TryMove(moveDir))
+                {                   
+                    return;
+                }
             }
             else
             {
-                BodyList[i].Move(_lastPos - BodyList[i].Position);
+                // Move in direction of previous body piece's old position.
+
+                BodyList[i].ForceMoveDirect(_lastPos);
+
+                // If the tail piece, set the recorded tail position to the position before moving
 
                 if (i == BodyList.Count - 1)
+                {
                     TailLastPos = _oldPos;
+                    print(BodyList[i].name);
+                }                    
             }
 
             _lastPos = _oldPos;
         }
+
+        TheTileManager.UpdatePositions();
     }
 
     public void AddNewBody()
     {
-        GameObject _newBody = Instantiate<GameObject>(BodyList[BodyList.Count - 1].gameObject);
-        _newBody.GetComponent<TileTransform>().Position = TailLastPos;
-        _newBody.transform.parent = transform;
+        GameObject _newBody = Instantiate(SnakeBodyPiece, TailLastPos, Quaternion.identity, transform);
         BodyList.Add(_newBody.GetComponent<TileTransform>());
+        print("add body");
     }
 }

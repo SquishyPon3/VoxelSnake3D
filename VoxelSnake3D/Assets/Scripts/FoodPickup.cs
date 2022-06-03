@@ -5,6 +5,7 @@ using UnityEngine;
 public class FoodPickup : MonoBehaviour
 {
     TileTransform TileTrans;
+    [SerializeField]
     bool Eaten = false;
 
     // Start is called before the first frame update
@@ -29,7 +30,7 @@ public class FoodPickup : MonoBehaviour
         }
         else
         {
-            Destroy(this.gameObject);
+            TileTrans.DestroyTileTrans();
         }
     }
 }

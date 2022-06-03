@@ -34,6 +34,7 @@ public class TileTransform : MonoBehaviour
         
         TileTransPosition = transform.position;
         TargetPosition = Position;
+        Position = transform.position;
     }
 
     // Update is called once per frame
@@ -90,6 +91,12 @@ public class TileTransform : MonoBehaviour
         RemoveFromCurrentTile();
     }
 
+    public void DestroyTileTrans()
+    {
+        RemoveFromCurrentTile();
+        gameObject.SetActive(false);
+    }
+
     void RemoveFromCurrentTile()
     {
         if (TheTileManager.WorldTileGrid[TileTransPosition] != null)
@@ -98,9 +105,12 @@ public class TileTransform : MonoBehaviour
             
             if (TheTileManager.WorldTileGrid[TileTransPosition].GetTileTranformList().Count - 1 <= 0)
             {
-                TheTileManager.WorldTileGrid[TileTransPosition] = null;
+                // This is what's breaking shit with moving because
+                // it probably sets the next pos as null as the snake body part moves into it.
+
+                //TheTileManager.WorldTileGrid[TileTransPosition] = null;
             }
-        }        
+        }
     }
 
     void AddToNewTile()
@@ -111,9 +121,12 @@ public class TileTransform : MonoBehaviour
         }
 
         TheTileManager.WorldTileGrid[TileTransPosition].AddTileTransform(this);
+
+        if (!TheTileManager.TileTransforms.Contains(this))
+            TheTileManager.TileTransforms.Add(this);
     }
 
-    public void Move(Vector3 dir, int distance = 1)
+    public bool TryMove(Vector3 dir, int distance = 1)
     {
         // Move all this shit to the tile manager for validation instead
         // eventually because then I can make sure stuff moves when it is supposed to.
@@ -124,18 +137,32 @@ public class TileTransform : MonoBehaviour
 
         if (TheTileManager.WorldTileGrid[_targetPos] != null)
         {
-            foreach (TileTransform tileTransform in TheTileManager.WorldTileGrid[_targetPos].GetTileTranformList())
+            if (!TheTileManager.HasPriority(_targetPos, this))
             {
-                if (tileTransform.Prioity >= Prioity)
-                {
-                    return;
-                }
+                return false;
             }
 
-            Position = _targetPos;
-            return;
+            TargetPosition = _targetPos;
+            return true;
         }
 
-        Position = _targetPos;
+        TargetPosition = _targetPos;
+        return true;
     }
+
+    public void ForceMove(Vector3 dir, int distance = 1)
+    {
+        Vector3 _targetPos;
+
+        _targetPos = Position + new Vector3(dir.x * distance, dir.y * distance, dir.z * distance);
+
+        TargetPosition = _targetPos;
+    }
+
+    public void ForceMoveDirect(Vector3 pos)
+    {       
+        TargetPosition = pos;
+    }
+
+
 }
