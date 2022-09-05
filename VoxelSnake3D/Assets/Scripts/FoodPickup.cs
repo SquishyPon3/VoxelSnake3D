@@ -30,7 +30,7 @@ public class FoodPickup : MonoBehaviour
         }
         else
         {
-            TileTrans.DestroyTileTrans();
+            TileTrans.DisableTileTrans();
         }
     }
 }

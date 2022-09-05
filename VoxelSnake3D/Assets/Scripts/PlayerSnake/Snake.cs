@@ -50,32 +50,59 @@ public class Snake : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.Q))
             AddNewBody();
+
+        if (Input.GetKeyDown(KeyCode.F))
+        {
+            foreach (TileTransform _bodyTileTrans in BodyList)
+            {
+                TheTileManager.FindTilePosInDir(_bodyTileTrans.Position, Vector3.down);
+            }
+        }
     }
 
-    void Move(Vector3 moveDir)
+    public void MoveLeft()
     {
+        Move(Vector3.left);
+    }
+    public void MoveRight()
+    {
+        Move(Vector3.right);
+    }
+    public void MoveForward()
+    {
+        Move(Vector3.forward);
+    }
+    public void MoveBack()
+    {
+        Move(Vector3.back);
+    }
+    public void MoveUp()
+    {
+        Move(Vector3.up);
+    }
+    public void MoveDown()
+    {
+        Move(Vector3.down);
+    }
+
+
+    void Move(Vector3 moveDir)
+    {        
         Vector3 _lastPos = Vector3.zero;
 
         for (int i = 0; i < BodyList.Count; i++)
         {
             Vector3 _oldPos = BodyList[i].Position;
+            Vector3 _targetPos = _oldPos + moveDir;
 
             if (i == 0)
             {
                 if (BodyList.Count > 1)
                 {                    
-                    if (TheTileManager.WorldTileGrid[_oldPos + moveDir] != null)
+                    if (TheTileManager.WorldTileGrid[_targetPos] != null)
                     {
-                        print("here");
-                        for (int j = 0; j < BodyList.Count; j++)
-                        {
-                            if (j < BodyList.Count - 1)
-                            {
-                                if (TheTileManager.WorldTileGrid[_oldPos + moveDir]
-                                    .GetTileTranformList().Contains(BodyList[j]))
-                                    return;
-                            }
-                        }
+                        if (TheTileManager.CheckTileContains(_targetPos, BodyList))
+                            return;
                     }                    
                 }
                 if (!BodyList[i].TryMove(moveDir))
@@ -102,6 +129,11 @@ public class Snake : MonoBehaviour
         }
 
         TheTileManager.UpdatePositions();
+        
+        if (!CheckOnFloor())
+        {
+            fall();
+        }
     }
 
     public void AddNewBody()
@@ -109,5 +141,103 @@ public class Snake : MonoBehaviour
         GameObject _newBody = Instantiate(SnakeBodyPiece, TailLastPos, Quaternion.identity, transform);
         BodyList.Add(_newBody.GetComponent<TileTransform>());
         print("add body");
+    }
+
+    public bool CheckOnFloor()
+    {
+        foreach(TileTransform bodyTrans in BodyList)
+        {
+            Vector3 _posBelow = bodyTrans.Position + Vector3.down;
+            Tile _tileBelow = TheTileManager.WorldTileGrid[_posBelow];
+
+            if (_tileBelow != null)
+            {               
+                if (_tileBelow.GetTileTranformList().Count > 0 
+                    && !TheTileManager.CheckTileContains(_posBelow, BodyList)
+                    && TheTileManager.CheckTileIsActive(_posBelow))
+                {                    
+                    return true;
+                }                
+            }
+
+            // Trying to get this to work correctly. Unusual behaviour currently.
+            //TheTileManager.FindTilePosInDir(bodyTrans.Position, Vector3.down);
+        }
+
+        print("not grounded");
+        return false;
+    }
+
+    public bool CheckOnFloor(Vector3 pos)
+    {
+        Vector3 _posBelow = pos + Vector3.down;
+        Tile _tileBelow = TheTileManager.WorldTileGrid[_posBelow];
+
+        if (_tileBelow != null)
+        {
+            if (_tileBelow.GetTileTranformList().Count > 0
+                    && !TheTileManager.CheckTileContains(_posBelow, BodyList)
+                    && TheTileManager.CheckTileIsActive(_posBelow))
+            {                
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public void fall()
+    {
+        //int _nearestDist = 0;
+
+        //foreach (TileTransform _snakeTileTrans in BodyList)
+        //{
+        //    float _dist =  _snakeTileTrans.Position.y;
+
+        //    if (_snakeTileTrans.Position.y > TheTileManager.FindTilePosInDir(_snakeTileTrans.Position, Vector3.down).y)
+        //    {
+        //        _nearestDist = (int)(_dist + 0.5f);
+        //    }
+        //}
+
+        //foreach (TileTransform _snakeTileTrans in BodyList)
+        //{
+        //    print(_nearestDist);
+        //    _snakeTileTrans.ForceMove(Vector3.down, _nearestDist - 1);
+        //}
+
+        //foreach (TileTransform _snakeTileTrans in BodyList)
+        //{
+        //    // Few bugs where the snake can fall into itself because it does not
+        //    // update whether or not it is on the floor until after having
+        //    // moved everything at once.
+
+        //    Vector3 _finalPos = TheTileManager.FindTilePosInDir(_snakeTileTrans.Position, Vector3.down);
+        //    _finalPos = new Vector3(_finalPos.x, _finalPos.y + 1, _finalPos.z);
+
+        //    _snakeTileTrans.ForceMoveDirect(_finalPos);          
+        //}
+
+        bool Grounded = false;
+        while (Grounded == false)
+        {
+            foreach (TileTransform snakeTileTrans in BodyList)
+            {
+                Vector3 _finalPos = snakeTileTrans.Position + Vector3.down;
+
+                if (CheckOnFloor(_finalPos))
+                {
+                    Grounded = true;
+                }
+            }
+
+            foreach (TileTransform snakeTileTrans in BodyList)
+            {
+                Vector3 _finalPos = snakeTileTrans.Position + Vector3.down;
+                snakeTileTrans.ForceMoveDirect(_finalPos);
+            }
+        }
+
+        TheTileManager.UpdatePositions();
     }
 }

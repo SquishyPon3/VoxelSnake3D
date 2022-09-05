@@ -8,6 +8,8 @@ public class TileManager : MonoBehaviour
     [SerializeField]
     public TileGrid WorldTileGrid;
     public List<TileTransform> TileTransforms;
+    [SerializeField]
+    public List<TileTransSave> TileTransSaves;
 
     [SerializeField]
     private Vector3 WorldGridSize;
@@ -24,7 +26,7 @@ public class TileManager : MonoBehaviour
 
     // Start is called before the first frame update
     void Start()
-    {       
+    {
         WorldTileGrid = new TileGrid(WorldGridSize);
         TileTransforms = new List<TileTransform>(FindObjectsOfType<TileTransform>());
 
@@ -50,6 +52,16 @@ public class TileManager : MonoBehaviour
         {
             UpdatePositions();
         }
+
+
+        if (Input.GetKeyDown(KeyCode.Y))
+        {
+            SaveTiles();
+        }
+        if (Input.GetKeyDown(KeyCode.U))
+        {
+            LoadTiles();
+        }
     }
 
     public void CreateTileAtIndexPos(Vector3 indexPos)
@@ -65,6 +77,8 @@ public class TileManager : MonoBehaviour
 
     public void UpdatePositions()
     {
+        SaveTiles();
+
         for (int i = 0; i < TileTransforms.Count; i++)
         {
             TileTransforms[i].Position = TileTransforms[i].TargetPosition;
@@ -82,9 +96,47 @@ public class TileManager : MonoBehaviour
                     return false;
                 }
             }
-        }        
+        }
 
         return true;
+    }
+
+    public bool CheckTileContains(Vector3 tilePos, List<TileTransform> tileTransList)
+    {
+        foreach (TileTransform _tileTrans in tileTransList)
+        {
+            if (WorldTileGrid[tilePos].GetTileTranformList().Contains(_tileTrans))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public bool CheckTileContains(Vector3 tilePos, TileTransform tileTrans)
+    {
+        if (WorldTileGrid[tilePos].GetTileTranformList().Contains(tileTrans))
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    public bool CheckTileIsActive(Vector3 tilePos)
+    {
+        bool containsActive = false;
+
+        foreach (TileTransform _tileTrans in WorldTileGrid[tilePos].GetTileTranformList())
+        {
+            if (_tileTrans.gameObject.activeSelf == true)
+            {
+                containsActive = true;
+            }
+        }
+
+        return containsActive;
     }
 
     bool DrawnCubes = false;
@@ -115,7 +167,9 @@ public class TileManager : MonoBehaviour
 
                         if (Application.isPlaying == true)
                         {
-                            if (WorldTileGrid[_tilePos] != null)
+                            // Putting .count tracker in temporarily because not removing empty Tiles until snake is fixed.
+
+                            if (WorldTileGrid[_tilePos] != null && WorldTileGrid[_tilePos].GetTileTranformList().Count > 0)
                             {
                                 Vector3 _add = new Vector3(0.1f, -0.1f, 0f);
 
@@ -170,4 +224,96 @@ public class TileManager : MonoBehaviour
             }
         }        
     }    
+
+    public Vector3 FindTilePosInDir(Vector3 startPos, Vector3 dir)
+    {
+        Vector3 _finalDir = dir;
+
+        //while (WorldTileGrid[startPos + _finalDir] == null
+        //    || WorldTileGrid[startPos + _finalDir].GetTileTranformList().Count == 0)
+        //{
+        //    _finalDir += dir;
+        //}
+
+        while (Vector3.Scale(startPos + _finalDir, dir).magnitude < Vector3.Scale(WorldGridSize, dir).magnitude)
+        {
+            if (WorldTileGrid[startPos + _finalDir] == null 
+                    || WorldTileGrid[startPos + _finalDir].GetTileTranformList().Count == 0)
+            {
+                _finalDir += dir;
+                continue;
+            }           
+            else
+            {
+                bool tileClear = false;
+
+                foreach (TileTransform tileTrans in WorldTileGrid[startPos + _finalDir].GetTileTranformList())
+                {
+                    if(LayerMask.LayerToName(tileTrans.gameObject.layer) == "Snake")
+                    {
+                        tileClear = true;
+                    }
+                }
+
+                if (tileClear)
+                {
+                    _finalDir += dir;
+                    continue;
+                }    
+                else
+                {
+                    break;
+                }
+            }            
+        }
+
+        print("Start: " + startPos + " end: " + (startPos + _finalDir) + " distance: " + Vector3.Distance(startPos, _finalDir));
+        return startPos + _finalDir;
+    }
+
+    void SaveTiles()
+    {
+        TileTransSave _newTileSave = new TileTransSave();
+
+        TileTransform[] _tileTransforms = new TileTransform[TileTransforms.Count];
+        Vector3[] Positions = new Vector3[TileTransforms.Count];
+        Vector3[] TargetPositions = new Vector3[TileTransforms.Count];
+        bool[] ActiveStates = new bool[TileTransforms.Count];
+
+        for (int i = 0; i < TileTransforms.Count; i++)
+        {
+            //_tileTransforms[i] = TileTransforms[i];
+            ActiveStates[i] = TileTransforms[i].transform.gameObject.activeSelf;
+            Positions[i] = TileTransforms[i].Position;
+            TargetPositions[i] = TileTransforms[i].TargetPosition;            
+        }
+
+        //_newTileSave.TileTransforms = _tileTransforms;
+        _newTileSave.ActiveStates = ActiveStates;
+        _newTileSave.Positions = Positions;
+        _newTileSave.TargetPositions = TargetPositions;        
+
+        TileTransSaves.Add(_newTileSave);
+    }    
+
+    void LoadTiles()
+    {
+        // One way to possibly delete new tileTansforms such as new player tail pieces
+        // could be to remove all game objects from the TileTransforms list which exceed
+        // the number of TileTransforms in the previous saves' list.
+
+        // Also need to fix bug with falling not saving correctly, probably because of the nature
+        // of falling using ForceMove and the saving system saving before the results of a move.
+
+        for (int i = 0; i < TileTransforms.Count; i++)
+        {
+            TileTransforms[i].transform.gameObject.SetActive(TileTransSaves[TileTransSaves.Count - 1].ActiveStates[i]);
+            TileTransforms[i].Position = TileTransSaves[TileTransSaves.Count - 1].Positions[i];
+            TileTransforms[i].TargetPosition = TileTransSaves[TileTransSaves.Count - 1].TargetPositions[i];
+        }
+
+        // The reason pickups flash back to inactive is because I never reset their "has been picked up bool."
+
+        TileTransSaves.RemoveAt(TileTransSaves.Count - 1);
+    }
 }

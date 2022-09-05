@@ -14,7 +14,7 @@ public class Tile
     // Update is called once per frame
     void Update()
     {
-        
+
     }
 
     public void AddTileTransform(TileTransform tileTransform)

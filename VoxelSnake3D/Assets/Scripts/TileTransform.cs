@@ -91,9 +91,9 @@ public class TileTransform : MonoBehaviour
         RemoveFromCurrentTile();
     }
 
-    public void DestroyTileTrans()
+    public void DisableTileTrans()
     {
-        RemoveFromCurrentTile();
+        RemoveFromCurrentTile();        
         gameObject.SetActive(false);
     }
 
@@ -143,6 +143,20 @@ public class TileTransform : MonoBehaviour
             }
 
             TargetPosition = _targetPos;
+
+            // Temporary thing for moving boxes, might be a better place for it elsewhere
+            foreach (TileTransform _tileTrans in TheTileManager.WorldTileGrid[_targetPos].GetTileTranformList())
+            {
+                // At the moment only checks for "pushblocks", might be a good way to do this
+                // dynamically using priority & dynamic params instead.
+
+                if (_tileTrans.GetComponent<Pushblock>() != null)
+                {
+                    if (!_tileTrans.GetComponent<Pushblock>().TryPush(Position))
+                        return false;
+                }
+            }
+
             return true;
         }
 
@@ -163,6 +177,4 @@ public class TileTransform : MonoBehaviour
     {       
         TargetPosition = pos;
     }
-
-
 }
