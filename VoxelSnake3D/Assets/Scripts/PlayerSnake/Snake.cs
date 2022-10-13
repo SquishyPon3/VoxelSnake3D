@@ -219,6 +219,7 @@ public class Snake : MonoBehaviour
         //}
 
         bool Grounded = false;
+        bool WillDie = false;
         while (Grounded == false)
         {
             foreach (TileTransform snakeTileTrans in BodyList)
@@ -229,13 +230,23 @@ public class Snake : MonoBehaviour
                 {
                     Grounded = true;
                 }
+                if (_finalPos.y <= 0)
+                {
+                    TheTileManager.LoadTiles();
+                    return;
+                }
             }
 
             foreach (TileTransform snakeTileTrans in BodyList)
             {
                 Vector3 _finalPos = snakeTileTrans.Position + Vector3.down;
+                
+                // I don't want to do this, I want it all to move at once
+                // for future stuff like enemies. try to find a solution please!
                 snakeTileTrans.ForceMoveDirect(_finalPos);
             }
+
+            //TheTileManager.UpdatePositions();
         }
 
         TheTileManager.UpdatePositions();
